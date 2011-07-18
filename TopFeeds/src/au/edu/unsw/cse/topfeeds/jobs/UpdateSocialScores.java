@@ -1,6 +1,6 @@
-package au.cse.unsw.topfeeds.jobs;
+package au.edu.unsw.cse.topfeeds.jobs;
 
-public class RetrieveUpdatePosts {
+public class UpdateSocialScores {
 
 	/**
 	 * @param args

@@ -10,5 +10,6 @@ public interface FeedDAO {
 	void addPost(Post post);
 	List<Post> retrieveFeed(String accountId);
 	void updateSocialScore(List<SocialDistance> socialDistances);
+	int getFriendId(String identifier, SocialNetwork socialNetwork);
 	
 }

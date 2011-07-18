@@ -10,10 +10,14 @@ public class Post {
 	private String message;
 	private String url;
 	private int comments;
+	private int likes;
 	private String type;
 	
+	public Post(){
+		
+	}
 	public Post(int id, int ownerId, int senderId, String message, String url,
-			int comments, String type) {
+			int comments, int likes, String type) {
 		super();
 		this.id = id;
 		this.ownerId = ownerId;
@@ -21,6 +25,7 @@ public class Post {
 		this.message = message;
 		this.url = url;
 		this.comments = comments;
+		this.likes = likes;
 		this.type = type;
 	}
 	
@@ -59,6 +64,12 @@ public class Post {
 	}
 	public void setComments(int comments) {
 		this.comments = comments;
+	}
+	public int getLikes() {
+		return likes;
+	}
+	public void setLikes(int likes) {
+		this.likes = likes;
 	}
 	public String getType() {
 		return type;

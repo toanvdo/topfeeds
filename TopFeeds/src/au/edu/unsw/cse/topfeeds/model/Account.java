@@ -7,6 +7,8 @@ public class Account {
 	private String accessToken;
 	private String type;
 	
+	public Account(){}
+	
 	public Account(int id, int userId, String username, String accessToken,
 			String type) {
 		super();
