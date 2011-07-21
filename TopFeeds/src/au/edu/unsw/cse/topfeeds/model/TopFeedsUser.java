@@ -9,12 +9,12 @@ public class TopFeedsUser {
 	private String password;
 	private String email;
 	private String mac;
-	private SocialNetwork status;
+	private String status;
 
 	public TopFeedsUser(){}
 	
 	public TopFeedsUser(int id, String username, String password, String email,
-			String mac, SocialNetwork status) {
+			String mac, String status) {
 		super();
 		this.id = id;
 		this.username = username;
@@ -54,10 +54,10 @@ public class TopFeedsUser {
 	public void setMac(String mac) {
 		this.mac = mac;
 	}
-	public SocialNetwork getStatus() {
+	public String getStatus() {
 		return status;
 	}
-	public void setStatus(SocialNetwork status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 

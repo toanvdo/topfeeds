@@ -1,16 +1,18 @@
 package au.edu.unsw.cse.topfeeds.model;
 
+import au.edu.unsw.cse.topfeeds.dao.SocialNetwork;
+
 public class Account {
 	private int id;
 	private int userId;
 	private String username;
 	private String accessToken;
-	private String type;
+	private SocialNetwork type;
 	
 	public Account(){}
 	
 	public Account(int id, int userId, String username, String accessToken,
-			String type) {
+			SocialNetwork type) {
 		super();
 		this.id = id;
 		this.userId = userId;
@@ -43,10 +45,10 @@ public class Account {
 	public void setAccessToken(String accessToken) {
 		this.accessToken = accessToken;
 	}
-	public String getType() {
+	public SocialNetwork getType() {
 		return type;
 	}
-	public void setType(String type) {
+	public void setType(SocialNetwork type) {
 		this.type = type;
 	}
 	

@@ -13,9 +13,12 @@ public interface AccountDAO {
 	void registerAccount(Account account) throws Exception;
 	void updateAccount(Account account);
 	List<Account> getAllActiveAccounts() throws Exception;
-	int registerSocialNetworkUser(String unique) throws Exception;
 	List<Account> getAccount(int userId) throws Exception;
 	TopFeedsUser getTopfeedsUser(String username, String password) throws Exception;
-
+	
+	int registerSocialNetworkUser(String realName) throws Exception;
+	int getSocialNetworkUser(String identifier, SocialNetwork socialNetwork) throws Exception;
+	
+	int registerFriend(String identifer, SocialNetwork socialNetwork,String realName);
 
 }

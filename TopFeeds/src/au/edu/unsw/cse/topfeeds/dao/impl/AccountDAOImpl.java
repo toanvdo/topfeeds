@@ -21,7 +21,7 @@ public class AccountDAOImpl implements AccountDAO {
 		try {
 			PreparedStatement ps = conn
 					.prepareStatement("INSERT ACCOUNT(userId, username,accessToken,type) VALUES (?,?,?,?)");
-			ps.setInt(1, account.getId());
+			ps.setInt(1, account.getUserId());
 			ps.setString(2, account.getUsername());
 			ps.setString(3, account.getAccessToken());
 			ps.setString(4, account.getType().toString());
@@ -31,7 +31,6 @@ public class AccountDAOImpl implements AccountDAO {
 			if (status == 0) {
 				throw new Exception("Failed to insert Account, try again");
 			}
-
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -42,10 +41,9 @@ public class AccountDAOImpl implements AccountDAO {
 		List<Account> accounts = null;
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement(
-							"SELECT id, userId, username,accessToken,type FROM ACCOUNT, "
-							+ "TOPFEEDS_USER WHERE ACCOUNT.userId=TOPFEEDS_USER.id AND TOPFEEDS_USER.status='ACTIVE' " 
-							+ "ORDER BY ACCOUNT.userId ASC");
+					.prepareStatement("SELECT A.id, A.userId, A.username,A.accessToken,A.type FROM ACCOUNT A, "
+							+ "TOPFEEDS_USER TFU WHERE A.userId=TFU.id AND TFU.status='ACTIVE' "
+							+ "ORDER BY A.userId ASC");
 
 			ResultSet rs = ps.executeQuery();
 			accounts = new ArrayList<Account>();
@@ -56,46 +54,16 @@ public class AccountDAOImpl implements AccountDAO {
 				acct.setUserId(rs.getInt(2));
 				acct.setUsername(rs.getString(3));
 				acct.setAccessToken(rs.getString(4));
-				acct.setType(rs.getString(5));
+				acct.setType(SocialNetwork.valueOf(rs.getString(5)
+						.toUpperCase()));
 
 				accounts.add(acct);
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Active Accounts");
+			throw new Exception("Failed to get Active Accounts",e);
 		}
 
 		return accounts;
-
-	}
-
-	public int registerSocialNetworkUser(String unique) throws Exception {
-		try {
-			PreparedStatement ps = conn
-					.prepareStatement("INSERT SOCIAL_NETWORK_USER(realName) VALUES (?)");
-
-			ps.setString(1, unique);
-			int status = ps.executeUpdate();
-
-			if (status == 0) {
-				throw new Exception("Failed to insert Account, try again");
-			}
-
-			// fetch the ID;
-
-			ps = conn
-					.prepareStatement("SELECT id FROM SOCIAL_NETWORK_USER WHERE realName=? ");
-			ps.setString(1, unique);
-			ResultSet rs = ps.executeQuery();
-			if (rs.first()) {
-				return rs.getInt(1);
-			}
-
-		} catch (SQLException e) {
-			throw new Exception(
-					"Failed to insert social network user, try again later");
-		}
-
-		return -1;
 
 	}
 
@@ -165,10 +133,10 @@ public class AccountDAOImpl implements AccountDAO {
 				tfu.setPassword(rs.getString(3));
 				tfu.setEmail(rs.getString(4));
 				tfu.setMac(rs.getString(5));
-				tfu.setStatus(SocialNetwork.valueOf(rs.getString(6)));
+				tfu.setStatus(rs.getString(6));
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Accounts");
+			throw new Exception("Failed to get Accounts",e);
 		}
 
 		return tfu;
@@ -190,15 +158,87 @@ public class AccountDAOImpl implements AccountDAO {
 				acct.setUserId(userId);
 				acct.setUsername(rs.getString(3));
 				acct.setAccessToken(rs.getString(4));
-				acct.setType(rs.getString(5));
+				acct.setType(SocialNetwork.valueOf(rs.getString(5)
+						.toUpperCase()));
 
 				accounts.add(acct);
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Accounts");
+			throw new Exception("Failed to get Accounts",e);
 		}
 
 		return accounts;
+	}
+
+	public int registerSocialNetworkUser(String realName) throws Exception {
+		int userId = -1;
+		try {
+			PreparedStatement ps = conn
+					.prepareStatement("INSERT SOCIAL_NETWORK_USER(realName) VALUES (?)");
+
+			ps.setString(1, realName);
+			int status = ps.executeUpdate();
+
+			if (status == 0) {
+				throw new Exception("Failed to insert Account, try again");
+			}
+
+			// fetch the ID;
+
+			ps = conn.prepareStatement("SELECT LAST_INSERT_ID()");
+			ResultSet rs = ps.executeQuery();
+			if (rs.first()) {
+				userId = rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			throw new Exception(
+					"Failed to insert social network user, try again later",e);
+		}
+		
+		return userId;
+	}
+
+	@Override
+	public int getSocialNetworkUser(String identifier,
+			SocialNetwork socialNetwork) throws Exception {
+		int userId = -1;
+		try {
+			PreparedStatement ps = conn
+					.prepareStatement("SELECT userId FROM ACCOUNT WHERE username=? AND type =?");
+			ps.setString(1, identifier);
+			ps.setString(2, socialNetwork.toString());
+
+			ResultSet rs = ps.executeQuery();
+			if (rs.first()) {
+				userId = rs.getInt(1);
+			}
+		} catch (SQLException e) {
+			throw new Exception("Failed to get Accounts",e);
+		}
+
+		return userId;
+	}
+
+	public int registerFriend(String identifer, SocialNetwork socialNetwork,
+			String realName) {
+		int userId = -1;
+		
+		try {
+			userId = registerSocialNetworkUser(realName);
+			Account acct = new Account();
+			acct.setAccessToken("EMPTY");
+			acct.setUserId(userId);
+			acct.setType(socialNetwork);
+			acct.setUsername(identifer);
+
+			registerAccount(acct);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return userId;
+
 	}
 
 }

@@ -1,22 +1,30 @@
 package au.edu.unsw.cse.topfeeds.model;
 
+import java.util.Date;
+
 public class SocialDistance {
 	private int id;
 	private int accountId;
 	private int friendId;
 	private int mutualFriends;
 	private int interactions;
+	private Date lastUpdated;
 	
 	public SocialDistance(int id, int accountId, int friendId,
-			int mutualFriends, int interactions) {
+			int mutualFriends, int interactions,Date lastUpdated) {
 		super();
 		this.id = id;
 		this.accountId = accountId;
 		this.friendId = friendId;
 		this.mutualFriends = mutualFriends;
 		this.interactions = interactions;
+		this.setLastUpdated(lastUpdated);
 	}
 	
+	public SocialDistance() {
+		// TODO Auto-generated constructor stub
+	}
+
 	public int getId() {
 		return id;
 	}
@@ -46,6 +54,14 @@ public class SocialDistance {
 	}
 	public void setInteractions(int interactions) {
 		this.interactions = interactions;
+	}
+
+	public Date getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public void setLastUpdated(Date lastUpdated) {
+		this.lastUpdated = lastUpdated;
 	}
 
 }
