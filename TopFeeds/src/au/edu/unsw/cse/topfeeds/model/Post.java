@@ -1,6 +1,6 @@
 package au.edu.unsw.cse.topfeeds.model;
 
-import java.util.Date;
+import java.sql.Date;
 
 import javax.xml.bind.annotation.XmlRootElement;
 

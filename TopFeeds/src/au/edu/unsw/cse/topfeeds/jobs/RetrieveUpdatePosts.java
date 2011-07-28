@@ -48,6 +48,9 @@ public class RetrieveUpdatePosts implements Job {
 		try {
 			for (Account acct : acctDAO.getAllActiveAccounts()) {
 				List<Post> posts = getPostFromCurrentUser(acct, feedDAO);
+				
+				//TODO: Batch insert/update
+				feedDAO.updatePosts(posts);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -74,17 +77,17 @@ public class RetrieveUpdatePosts implements Job {
 				sd = feedDAO.getSocialDistance(acct.getUserId(), p.getSenderId());
 				
 				
+				// calculate scores
 				int score = calculateScore(p.getCreatedTime().getTime(),
 						p.getLikes(), p.getComments(),
 						0,0);
+//						sd.getMutualFriends(), sd.getInteractions());
 				
 				p.setScore(score);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
-			// calculate scores
 
 		}
 

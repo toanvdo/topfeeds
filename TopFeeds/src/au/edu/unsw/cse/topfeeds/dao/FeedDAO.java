@@ -7,7 +7,7 @@ import au.edu.unsw.cse.topfeeds.model.SocialDistance;
 
 public interface FeedDAO {
 	
-	void addPost(Post post);
+	void updatePosts(List<Post> posts);
 	List<Post> retrieveFeed(String accountId);
 	void updateSocialScore(List<SocialDistance> socialDistances);
 	SocialDistance getSocialDistance(int ownerId, int friendId) throws Exception;

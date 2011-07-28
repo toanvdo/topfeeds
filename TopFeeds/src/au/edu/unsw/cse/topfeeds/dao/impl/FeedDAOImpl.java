@@ -4,6 +4,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import au.edu.unsw.cse.topfeeds.dao.DatabaseConnection;
@@ -16,7 +19,6 @@ public class FeedDAOImpl implements FeedDAO{
 
 	private Connection conn = DatabaseConnection.getConnection();
 
-	@Override
 	public SocialDistance getSocialDistance(int ownerId, int friendId)
 			throws Exception {
 
@@ -48,22 +50,58 @@ public class FeedDAOImpl implements FeedDAO{
 		return sd;
 	}
 
-	@Override
-	public void addPost(Post post) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public List<Post> retrieveFeed(String accountId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public void updateSocialScore(List<SocialDistance> socialDistances) {
-		// TODO Auto-generated method stub
-		
+		try {
+			PreparedStatement ps = conn.prepareStatement(
+					"INSERT SOCIAL_DISTANCE (accountId, friendId, mutualFriends, interactions, lastUpdated)" +
+					" VALUES(?,?,?,?,NOW()) " +
+					"ON DUPLICATE KEY UPDATE accountId=?, friendId=?");
+			for(SocialDistance sd : socialDistances){
+				ps.setInt(1, sd.getAccountId());
+				ps.setInt(2, sd.getFriendId());
+				ps.setInt(3, sd.getMutualFriends());
+				ps.setInt(4, sd.getInteractions());
+				
+				ps.setInt(5, sd.getAccountId());
+				ps.setInt(6, sd.getFriendId());
+				ps.addBatch();
+			}
+			int[] updateCount = ps.executeBatch();
+		}catch(SQLException e){
+			e.printStackTrace();
+		}
+	}
+
+	public void updatePosts(List<Post> posts) {
+		try {
+			PreparedStatement ps = conn.prepareStatement(
+					"INSERT POST (postId,ownerId,senderId,message,url,comments,likes,type,createdTime,score,lastUpdated)" +
+					" VALUES(?,?,?,?,?,?,?,?,?,?,NOW()) " +
+					"ON DUPLICATE KEY UPDATE postId=?");
+			for(Post p : posts){
+				ps.setString(1, p.getPostId());
+				ps.setInt(2, p.getOwnerId());
+				ps.setInt(3, p.getSenderId());
+				ps.setString(4, p.getMessage());
+				ps.setString(5, p.getUrl());
+				ps.setInt(6, p.getComments());
+				ps.setInt(7, p.getLikes());
+				ps.setString(8, p.getType());
+				ps.setDate(9, p.getCreatedTime());
+				ps.setInt(10, p.getScore());
+				ps.setString(11, p.getPostId());
+				ps.addBatch();
+			}
+			int[] updateCount = ps.executeBatch();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }
