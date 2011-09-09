@@ -4,14 +4,11 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 import java.util.List;
 
 import au.edu.unsw.cse.topfeeds.dao.DatabaseConnection;
 import au.edu.unsw.cse.topfeeds.dao.FeedDAO;
-import au.edu.unsw.cse.topfeeds.dao.SocialNetwork;
 import au.edu.unsw.cse.topfeeds.model.Post;
 import au.edu.unsw.cse.topfeeds.model.SocialDistance;
 
@@ -92,8 +89,8 @@ public class FeedDAOImpl implements FeedDAO{
 				ps.setInt(6, p.getComments());
 				ps.setInt(7, p.getLikes());
 				ps.setString(8, p.getType());
-				ps.setDate(9, p.getCreatedTime());
-				ps.setInt(10, p.getScore());
+				ps.setTimestamp(9, new Timestamp(p.getCreatedTime().getTime()));
+				ps.setDouble(10, p.getScore());
 				ps.setString(11, p.getPostId());
 				ps.addBatch();
 			}

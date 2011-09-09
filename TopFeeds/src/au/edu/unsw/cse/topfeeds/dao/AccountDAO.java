@@ -4,6 +4,7 @@ import java.util.List;
 
 import au.edu.unsw.cse.topfeeds.model.Account;
 import au.edu.unsw.cse.topfeeds.model.TopFeedsUser;
+import au.edu.unsw.cse.topfeeds.model.UserPreference;
 
 
 public interface AccountDAO {
@@ -20,5 +21,6 @@ public interface AccountDAO {
 	int getSocialNetworkUser(String identifier, SocialNetwork socialNetwork) throws Exception;
 	
 	int registerFriend(String identifer, SocialNetwork socialNetwork,String realName);
+	UserPreference getUserPreference(Account acct);
 
 }

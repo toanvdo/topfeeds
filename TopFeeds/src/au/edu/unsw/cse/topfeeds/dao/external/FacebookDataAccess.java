@@ -6,10 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import au.edu.unsw.cse.topfeeds.dao.AccountDAO;
-import au.edu.unsw.cse.topfeeds.dao.FeedDAO;
 import au.edu.unsw.cse.topfeeds.dao.SocialNetwork;
 import au.edu.unsw.cse.topfeeds.dao.impl.AccountDAOImpl;
-import au.edu.unsw.cse.topfeeds.dao.impl.FeedDAOImpl;
 import au.edu.unsw.cse.topfeeds.model.Account;
 import au.edu.unsw.cse.topfeeds.model.Post;
 import au.edu.unsw.cse.topfeeds.model.SocialDistance;
@@ -21,12 +19,10 @@ import com.restfb.FacebookClient;
 
 public class FacebookDataAccess implements SocialDataAccess {
 
-	private FeedDAO feedDAO = new FeedDAOImpl();
 	private AccountDAO accountDAO = new AccountDAOImpl();
 
 	@Override
 	public List<Post> getUserFeed(Account account) {
-		// TODO Auto-generated method stub
 		String accesstoken = account.getAccessToken();
 
 		FacebookClient facebookClient = new DefaultFacebookClient(accesstoken);
@@ -127,13 +123,14 @@ public class FacebookDataAccess implements SocialDataAccess {
 			}
 		}
 
-		//friends posting to my wall
+		// friends posting to my wall
 		List<Interaction> interactionsToMe = facebookClient
 				.executeQuery(
 						"SELECT source_id, actor_id, message from stream where source_id="
 								+ account.getUsername()
-								+ " AND actor_id in (SELECT uid2 from friend where uid1="+account.getUsername()+")",
-								Interaction.class);
+								+ " AND actor_id in (SELECT uid2 from friend where uid1="
+								+ account.getUsername() + ")",
+						Interaction.class);
 
 		Map<String, Integer> interactionsMap = new HashMap<String, Integer>();
 		for (Interaction inter : interactionsToMe) {
@@ -161,19 +158,20 @@ public class FacebookDataAccess implements SocialDataAccess {
 				sd.setMutualFriends(mutualFriendsCount == null ? 0
 						: mutualFriendsCount);
 
-				
 				List<com.restfb.types.Post> interactions = facebookClient
 						.executeQuery(
 								"SELECT message from stream where actor_id="
-										+ account.getUserId()
+										+ account.getUsername()
 										+ " AND source_id=" + u.getId(),
 								com.restfb.types.Post.class);
+				Integer freq = interactionsMap.get(u.getId());
 
-				sd.setInteractions(interactions.size());
+				sd.setInteractions(interactions.size()
+						+ (freq == null ? 0 : freq));
 				sds.add(sd);
 			} catch (Exception e) {
 				// Catch the occasion where we cannot access friends of user X
-				// e.printStackTrace();
+				e.printStackTrace();
 			}
 		}
 
@@ -191,7 +189,7 @@ public class FacebookDataAccess implements SocialDataAccess {
 			return String.format("%s - %s", uid1, uid2);
 		}
 	}
-	
+
 	public static class Interaction {
 		@Facebook
 		String source_id;

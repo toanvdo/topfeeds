@@ -12,6 +12,7 @@ import au.edu.unsw.cse.topfeeds.dao.DatabaseConnection;
 import au.edu.unsw.cse.topfeeds.dao.SocialNetwork;
 import au.edu.unsw.cse.topfeeds.model.Account;
 import au.edu.unsw.cse.topfeeds.model.TopFeedsUser;
+import au.edu.unsw.cse.topfeeds.model.UserPreference;
 
 public class AccountDAOImpl implements AccountDAO {
 
@@ -20,11 +21,12 @@ public class AccountDAOImpl implements AccountDAO {
 	public void registerAccount(Account account) throws Exception {
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement("INSERT ACCOUNT(userId, username,accessToken,type) VALUES (?,?,?,?)");
+					.prepareStatement("INSERT ACCOUNT(userId, username,accessToken,tokenSecret, type) VALUES (?,?,?,?,?)");
 			ps.setInt(1, account.getUserId());
 			ps.setString(2, account.getUsername());
 			ps.setString(3, account.getAccessToken());
-			ps.setString(4, account.getType().toString());
+			ps.setString(4, account.getTokenSecret());
+			ps.setString(5, account.getType().toString());
 
 			int status = ps.executeUpdate();
 
@@ -41,7 +43,7 @@ public class AccountDAOImpl implements AccountDAO {
 		List<Account> accounts = null;
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement("SELECT A.id, A.userId, A.username,A.accessToken,A.type FROM ACCOUNT A, "
+					.prepareStatement("SELECT A.id, A.userId, A.username,A.accessToken,A.tokenSecret,A.type FROM ACCOUNT A, "
 							+ "TOPFEEDS_USER TFU WHERE A.userId=TFU.id AND TFU.status='ACTIVE' "
 							+ "ORDER BY A.userId ASC");
 
@@ -54,13 +56,14 @@ public class AccountDAOImpl implements AccountDAO {
 				acct.setUserId(rs.getInt(2));
 				acct.setUsername(rs.getString(3));
 				acct.setAccessToken(rs.getString(4));
-				acct.setType(SocialNetwork.valueOf(rs.getString(5)
+				acct.setTokenSecret(rs.getString(5));
+				acct.setType(SocialNetwork.valueOf(rs.getString(6)
 						.toUpperCase()));
 
 				accounts.add(acct);
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Active Accounts",e);
+			throw new Exception("Failed to get Active Accounts", e);
 		}
 
 		return accounts;
@@ -136,7 +139,7 @@ public class AccountDAOImpl implements AccountDAO {
 				tfu.setStatus(rs.getString(6));
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Accounts",e);
+			throw new Exception("Failed to get Accounts", e);
 		}
 
 		return tfu;
@@ -146,7 +149,7 @@ public class AccountDAOImpl implements AccountDAO {
 		List<Account> accounts = null;
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement("SELECT id, userId, username,accessToken,type FROM ACCOUNT WHERE userId=?");
+					.prepareStatement("SELECT id, userId, username,accessToken,tokenSecret,type FROM ACCOUNT WHERE userId=?");
 			ps.setInt(1, userId);
 
 			ResultSet rs = ps.executeQuery();
@@ -158,13 +161,14 @@ public class AccountDAOImpl implements AccountDAO {
 				acct.setUserId(userId);
 				acct.setUsername(rs.getString(3));
 				acct.setAccessToken(rs.getString(4));
-				acct.setType(SocialNetwork.valueOf(rs.getString(5)
+				acct.setAccessToken(rs.getString(5));
+				acct.setType(SocialNetwork.valueOf(rs.getString(6)
 						.toUpperCase()));
 
 				accounts.add(acct);
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Accounts",e);
+			throw new Exception("Failed to get Accounts", e);
 		}
 
 		return accounts;
@@ -192,9 +196,9 @@ public class AccountDAOImpl implements AccountDAO {
 			}
 		} catch (SQLException e) {
 			throw new Exception(
-					"Failed to insert social network user, try again later",e);
+					"Failed to insert social network user, try again later", e);
 		}
-		
+
 		return userId;
 	}
 
@@ -213,7 +217,7 @@ public class AccountDAOImpl implements AccountDAO {
 				userId = rs.getInt(1);
 			}
 		} catch (SQLException e) {
-			throw new Exception("Failed to get Accounts",e);
+			throw new Exception("Failed to get Accounts", e);
 		}
 
 		return userId;
@@ -222,7 +226,7 @@ public class AccountDAOImpl implements AccountDAO {
 	public int registerFriend(String identifer, SocialNetwork socialNetwork,
 			String realName) {
 		int userId = -1;
-		
+
 		try {
 			userId = registerSocialNetworkUser(realName);
 			Account acct = new Account();
@@ -239,6 +243,34 @@ public class AccountDAOImpl implements AccountDAO {
 
 		return userId;
 
+	}
+
+	public UserPreference getUserPreference(Account acct) {
+		UserPreference userPref = null;
+		try {
+			PreparedStatement ps = conn
+					.prepareStatement("SELECT id, userId, socialDistancePref, popularityPref, networkPref, recencyPref " +
+							"FROM USER_PREFERENCE " +
+							"WHERE userId=?");
+			ps.setInt(1, acct.getUserId());
+			
+			
+			ResultSet rs = ps.executeQuery();
+			if (rs.first()) {
+				userPref = new UserPreference();
+				userPref.setId(rs.getInt(1));
+				userPref.setUserId(rs.getInt(2));
+				userPref.setSocialDistancePref(rs.getFloat(3));
+				userPref.setPopularityPref(rs.getFloat(4));
+				userPref.setNetworkPref(SocialNetwork.valueOf(rs.getString(5)));
+				userPref.setRecencyPref(rs.getFloat(6));
+			}
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return userPref;
 	}
 
 }

@@ -15,7 +15,7 @@ public class Post {
 	private int comments;
 	private int likes;
 	private String type;
-	private int score;
+	private double score;
 	private Date createdTime;
 	private Date lastUpdated;
 
@@ -24,7 +24,7 @@ public class Post {
 
 	public Post(int id, String postId, int ownerId, int senderId,
 			String message, String url, int comments, int likes, String type,
-			int score, Date createdTime, Date lastUpdated) {
+			double score, Date createdTime, Date lastUpdated) {
 		super();
 		this.id = id;
 		this.postId = postId;
@@ -120,11 +120,11 @@ public class Post {
 		this.createdTime = createdTime;
 	}
 
-	public int getScore() {
+	public double getScore() {
 		return score;
 	}
 
-	public void setScore(int score) {
+	public void setScore(double score) {
 		this.score = score;
 	}
 

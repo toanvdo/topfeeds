@@ -1,6 +1,5 @@
 package au.edu.unsw.cse.topfeeds.jobs;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.quartz.Job;
@@ -15,7 +14,6 @@ import au.edu.unsw.cse.topfeeds.dao.external.TwitterDataAccess;
 import au.edu.unsw.cse.topfeeds.dao.impl.AccountDAOImpl;
 import au.edu.unsw.cse.topfeeds.dao.impl.FeedDAOImpl;
 import au.edu.unsw.cse.topfeeds.model.Account;
-import au.edu.unsw.cse.topfeeds.model.Post;
 import au.edu.unsw.cse.topfeeds.model.SocialDistance;
 
 public class UpdateSocialScores implements Job {
@@ -28,10 +26,15 @@ public class UpdateSocialScores implements Job {
 	public void execute(JobExecutionContext arg0) throws JobExecutionException {
 		try {
 			for (Account acct : acctDAO.getAllActiveAccounts()) {
-				List<SocialDistance> sds = getSocialScoreForAccount(acct,
-						feedDAO);
+				try {
+					List<SocialDistance> sds = getSocialScoreForAccount(acct,
+							feedDAO);
 
-				feedDAO.updateSocialScore(sds);
+					feedDAO.updateSocialScore(sds);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -6,6 +6,6 @@ public class JobStarter {
 
 	public static void main(String[] args) throws SchedulerException {
 		new RetrieveUpdatePostSchedule();
-		new UpdateSocialScoresSchedule();
+//		new UpdateSocialScoresSchedule();
 	}
 }

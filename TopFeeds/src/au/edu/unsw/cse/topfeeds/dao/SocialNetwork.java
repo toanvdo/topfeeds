@@ -1,7 +1,7 @@
 package au.edu.unsw.cse.topfeeds.dao;
 
 public enum SocialNetwork {
-	FACEBOOK("facebook"), TWITTER("twitter");
+	FACEBOOK("FACEBOOK"), TWITTER("TWITTER");
 	
 	private String value;
 	

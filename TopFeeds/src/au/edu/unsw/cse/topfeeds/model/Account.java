@@ -7,17 +7,19 @@ public class Account {
 	private int userId;
 	private String username;
 	private String accessToken;
+	private String tokenSecret;
 	private SocialNetwork type;
 	
 	public Account(){}
 	
-	public Account(int id, int userId, String username, String accessToken,
+	public Account(int id, int userId, String username, String accessToken,String tokenSecret,
 			SocialNetwork type) {
 		super();
 		this.id = id;
 		this.userId = userId;
 		this.username = username;
 		this.accessToken = accessToken;
+		this.tokenSecret = tokenSecret;
 		this.type = type;
 	}
 	
@@ -45,6 +47,13 @@ public class Account {
 	public void setAccessToken(String accessToken) {
 		this.accessToken = accessToken;
 	}
+	public String getTokenSecret() {
+		return tokenSecret;
+	}
+	public void setTokenSecret(String tokenSecret) {
+		this.tokenSecret = tokenSecret;
+	}
+
 	public SocialNetwork getType() {
 		return type;
 	}

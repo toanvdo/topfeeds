@@ -1,21 +1,10 @@
 package au.edu.unsw.cse.topfeeds.jobs;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import org.apache.axis2.databinding.types.soapencoding.Array;
 import org.quartz.Job;
-import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerFactory;
-import org.quartz.Trigger;
-
-import com.restfb.Connection;
-import com.restfb.DefaultFacebookClient;
-import com.restfb.FacebookClient;
 
 import au.edu.unsw.cse.topfeeds.dao.AccountDAO;
 import au.edu.unsw.cse.topfeeds.dao.FeedDAO;
@@ -28,9 +17,12 @@ import au.edu.unsw.cse.topfeeds.dao.impl.FeedDAOImpl;
 import au.edu.unsw.cse.topfeeds.model.Account;
 import au.edu.unsw.cse.topfeeds.model.Post;
 import au.edu.unsw.cse.topfeeds.model.SocialDistance;
+import au.edu.unsw.cse.topfeeds.model.UserPreference;
 
 public class RetrieveUpdatePosts implements Job {
 
+	private static final int MAX_CAP = 50;
+	private static final float NETWORK_BONUS = 1.5f;
 	private SocialDataAccess facebookDAO = new FacebookDataAccess();
 	private SocialDataAccess twitterDAO = new TwitterDataAccess();
 	private AccountDAO acctDAO = new AccountDAOImpl();
@@ -47,10 +39,13 @@ public class RetrieveUpdatePosts implements Job {
 
 		try {
 			for (Account acct : acctDAO.getAllActiveAccounts()) {
-				List<Post> posts = getPostFromCurrentUser(acct, feedDAO);
-				
-				//TODO: Batch insert/update
-				feedDAO.updatePosts(posts);
+				try {
+					List<Post> posts = getPostFromCurrentUser(acct, feedDAO);
+					feedDAO.updatePosts(posts);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -60,7 +55,7 @@ public class RetrieveUpdatePosts implements Job {
 
 	private List<Post> getPostFromCurrentUser(Account acct, FeedDAO feedDAO) {
 		List<Post> posts = null;
-
+		UserPreference userPref = acctDAO.getUserPreference(acct);
 		switch (acct.getType()) {
 		case FACEBOOK:
 			posts = facebookDAO.getUserFeed(acct);
@@ -72,17 +67,25 @@ public class RetrieveUpdatePosts implements Job {
 
 		for (Post p : posts) {
 			// get social connection between the 2
-			SocialDistance sd=new SocialDistance();
+			SocialDistance sd = new SocialDistance();
 			try {
-				sd = feedDAO.getSocialDistance(acct.getUserId(), p.getSenderId());
-				
-				
-				// calculate scores
-				int score = calculateScore(p.getCreatedTime().getTime(),
-						p.getLikes(), p.getComments(),
-						0,0);
-//						sd.getMutualFriends(), sd.getInteractions());
-				
+				sd = feedDAO.getSocialDistance(acct.getUserId(),
+						p.getSenderId());
+
+				double score = 0;
+				if (sd != null) {
+					score = calculateScore(userPref, acct.getType(), p
+							.getCreatedTime().getTime(), p.getLikes(),
+							p.getComments(), sd.getMutualFriends(),
+							sd.getInteractions());
+				} else {
+					// The post is from a page or an entity who isnt your direct
+					// friend
+					score = calculateNonFriendScore(userPref, acct.getType(), p
+							.getCreatedTime().getTime(), p.getLikes(),
+							p.getComments());
+				}
+
 				p.setScore(score);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -94,11 +97,71 @@ public class RetrieveUpdatePosts implements Job {
 		return posts;
 	}
 
-	private int calculateScore(long createdTime, int likes, int comments,
-			int mutualFriends, int interactions) {
-		// TODO Add time attribute
+	private double calculateScore(UserPreference userPref,
+			SocialNetwork socialNetwork, long createdTime, int likes,
+			int comments, int mutualFriends, int interactions) {
 
-		return likes + comments + mutualFriends + interactions;
+		float networkPlus = 0.0f;
+
+		if (socialNetwork.equals(userPref.getNetworkPref())) {
+			networkPlus = NETWORK_BONUS;
+		}
+
+		if (likes > MAX_CAP) {
+			likes = MAX_CAP;
+		}
+
+		if (comments > MAX_CAP) {
+			comments = MAX_CAP;
+		}
+
+		// if (mutualFriends > MAX_CAP) {
+		// mutualFriends = MAX_CAP;
+		// }
+		//
+		// if (interactions > MAX_CAP) {
+		// interactions = MAX_CAP;
+		// }
+
+		long timeDiff = System.currentTimeMillis() - createdTime;
+
+		// 1000*60ms = 1min
+		// timediff larger = older post
+		double hourDiff = userPref.getRecencyPref()
+				* (timeDiff / (1000 * 60 * 60.0));
+		double score = (((userPref.getPopularityPref() * (likes + comments))
+				+ (userPref.getSocialDistancePref() * (mutualFriends + interactions)) +1.0) / (hourDiff + 2.0));
+		return networkPlus * score;
+	}
+
+	private double calculateNonFriendScore(UserPreference userPref,
+			SocialNetwork socialNetwork, long createdTime, int likes,
+			int comments) {
+
+		float networkPlus = 0.0f;
+
+		if (socialNetwork.equals(userPref.getNetworkPref())) {
+			networkPlus = NETWORK_BONUS;
+		}
+
+		if (likes > MAX_CAP) {
+			likes = MAX_CAP;
+		}
+
+		if (comments > MAX_CAP) {
+			comments = MAX_CAP;
+		}
+
+		long timeDiff = System.currentTimeMillis() - createdTime;
+
+		// 1000*60ms = 1min
+		// timediff larger = older post
+		double hourDiff = userPref.getRecencyPref()
+				* (timeDiff / (1000 * 60 * 60.0));
+
+		double score = (((userPref.getPopularityPref() * (likes + comments))
+				 + 1.0) / (hourDiff + 2.0));
+		return networkPlus * score;
 	}
 
 }
