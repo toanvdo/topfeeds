@@ -9,7 +9,7 @@ import au.edu.unsw.cse.topfeeds.model.UserPreference;
 
 public interface AccountDAO {
 	
-	void registerTopFeedsUser(TopFeedsUser topFeedsUser) throws Exception;
+	int registerTopFeedsUser(TopFeedsUser topFeedsUser) throws Exception;
 	void disableTopFeedsUser(TopFeedsUser topFeedsUser);
 	void registerAccount(Account account) throws Exception;
 	void updateAccount(Account account);
@@ -21,6 +21,9 @@ public interface AccountDAO {
 	int getSocialNetworkUser(String identifier, SocialNetwork socialNetwork) throws Exception;
 	
 	int registerFriend(String identifer, SocialNetwork socialNetwork,String realName);
-	UserPreference getUserPreference(Account acct);
+	
+	
+	UserPreference getUserPreference(int userId);
+	void updateUserPreference(UserPreference userPref);
 
 }

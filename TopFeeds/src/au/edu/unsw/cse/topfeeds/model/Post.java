@@ -18,26 +18,9 @@ public class Post {
 	private double score;
 	private Date createdTime;
 	private Date lastUpdated;
+	private String senderName;
 
 	public Post() {
-	}
-
-	public Post(int id, String postId, int ownerId, int senderId,
-			String message, String url, int comments, int likes, String type,
-			double score, Date createdTime, Date lastUpdated) {
-		super();
-		this.id = id;
-		this.postId = postId;
-		this.ownerId = ownerId;
-		this.senderId = senderId;
-		this.message = message;
-		this.url = url;
-		this.comments = comments;
-		this.likes = likes;
-		this.type = type;
-		this.score = score;
-		this.createdTime = createdTime;
-		this.lastUpdated = lastUpdated;
 	}
 
 	public int getId() {
@@ -134,6 +117,14 @@ public class Post {
 
 	public void setLastUpdated(Date lastUpdated) {
 		this.lastUpdated = lastUpdated;
+	}
+
+	public String getSenderName() {
+		return senderName;
+	}
+
+	public void setSenderName(String senderName) {
+		this.senderName = senderName;
 	}
 
 }

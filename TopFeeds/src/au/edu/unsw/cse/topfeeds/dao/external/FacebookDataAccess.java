@@ -16,10 +16,13 @@ import com.restfb.Connection;
 import com.restfb.DefaultFacebookClient;
 import com.restfb.Facebook;
 import com.restfb.FacebookClient;
+import com.restfb.types.User;
 
 public class FacebookDataAccess implements SocialDataAccess {
 
 	private AccountDAO accountDAO = new AccountDAOImpl();
+	private static final String FACEBOOK_APISECRET = "9f31c6bbd5695cfbb3a5afe400e5d7f3";
+	private static final String FACEBOOK_APIID = "218926754801065";
 
 	@Override
 	public List<Post> getUserFeed(Account account) {
@@ -35,7 +38,7 @@ public class FacebookDataAccess implements SocialDataAccess {
 
 			Post post = new Post();
 			post.setPostId(p.getId());
-			post.setOwnerId(account.getUserId());
+			post.setOwnerId(account.getId());
 			if (p.getMessage() == null || p.getMessage().isEmpty()) {
 				if (p.getDescription() == null || p.getDescription().isEmpty()) {
 					post.setMessage(p.getCaption());
@@ -176,6 +179,29 @@ public class FacebookDataAccess implements SocialDataAccess {
 		}
 
 		return sds;
+	}
+
+	public Account getUserAccount(Integer userId, String accessToken, String tokenSecret) {
+		if (userId == null || userId < 1) {
+			return null;
+		}
+		
+		System.out.println(accessToken);
+		FacebookClient facebookClient = new DefaultFacebookClient(accessToken);
+
+		User user = facebookClient.fetchObject("me", User.class);
+
+		Account acct = null;
+		if (user != null) {
+			acct = new Account();
+			acct.setUserId(userId);
+			acct.setUsername(user.getId());
+			acct.setAccessToken(accessToken);
+			acct.setName(user.getUsername());
+			acct.setType(SocialNetwork.FACEBOOK);
+		}
+
+		return acct;
 	}
 
 	public static class MutualFriend {

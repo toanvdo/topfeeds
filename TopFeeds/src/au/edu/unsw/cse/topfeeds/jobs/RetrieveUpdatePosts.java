@@ -40,8 +40,7 @@ public class RetrieveUpdatePosts implements Job {
 		try {
 			for (Account acct : acctDAO.getAllActiveAccounts()) {
 				try {
-					List<Post> posts = getPostFromCurrentUser(acct, feedDAO);
-					feedDAO.updatePosts(posts);
+					updatePostFromCurrentUser(acct);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -53,9 +52,9 @@ public class RetrieveUpdatePosts implements Job {
 		}
 	}
 
-	private List<Post> getPostFromCurrentUser(Account acct, FeedDAO feedDAO) {
+	public void updatePostFromCurrentUser(Account acct) {
 		List<Post> posts = null;
-		UserPreference userPref = acctDAO.getUserPreference(acct);
+//		UserPreference userPref = acctDAO.getUserPreference(acct.getUserId());
 		switch (acct.getType()) {
 		case FACEBOOK:
 			posts = facebookDAO.getUserFeed(acct);
@@ -65,43 +64,14 @@ public class RetrieveUpdatePosts implements Job {
 			break;
 		}
 
-		for (Post p : posts) {
-			// get social connection between the 2
-			SocialDistance sd = new SocialDistance();
-			try {
-				sd = feedDAO.getSocialDistance(acct.getUserId(),
-						p.getSenderId());
-
-				double score = 0;
-				if (sd != null) {
-					score = calculateScore(userPref, acct.getType(), p
-							.getCreatedTime().getTime(), p.getLikes(),
-							p.getComments(), sd.getMutualFriends(),
-							sd.getInteractions());
-				} else {
-					// The post is from a page or an entity who isnt your direct
-					// friend
-					score = calculateNonFriendScore(userPref, acct.getType(), p
-							.getCreatedTime().getTime(), p.getLikes(),
-							p.getComments());
-				}
-
-				p.setScore(score);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		}
-
-		return posts;
+		feedDAO.updatePosts(posts);
 	}
 
 	private double calculateScore(UserPreference userPref,
 			SocialNetwork socialNetwork, long createdTime, int likes,
 			int comments, int mutualFriends, int interactions) {
 
-		float networkPlus = 0.0f;
+		float networkPlus = 1.0f;
 
 		if (socialNetwork.equals(userPref.getNetworkPref())) {
 			networkPlus = NETWORK_BONUS;
@@ -130,7 +100,7 @@ public class RetrieveUpdatePosts implements Job {
 		double hourDiff = userPref.getRecencyPref()
 				* (timeDiff / (1000 * 60 * 60.0));
 		double score = (((userPref.getPopularityPref() * (likes + comments))
-				+ (userPref.getSocialDistancePref() * (mutualFriends + interactions)) +1.0) / (hourDiff + 2.0));
+				+ (userPref.getSocialDistancePref() * (mutualFriends + interactions)) + 1.0) / (hourDiff + 2.0));
 		return networkPlus * score;
 	}
 
@@ -138,7 +108,7 @@ public class RetrieveUpdatePosts implements Job {
 			SocialNetwork socialNetwork, long createdTime, int likes,
 			int comments) {
 
-		float networkPlus = 0.0f;
+		float networkPlus = 1.0f;
 
 		if (socialNetwork.equals(userPref.getNetworkPref())) {
 			networkPlus = NETWORK_BONUS;
@@ -159,8 +129,7 @@ public class RetrieveUpdatePosts implements Job {
 		double hourDiff = userPref.getRecencyPref()
 				* (timeDiff / (1000 * 60 * 60.0));
 
-		double score = (((userPref.getPopularityPref() * (likes + comments))
-				 + 1.0) / (hourDiff + 2.0));
+		double score = (((userPref.getPopularityPref() * (likes + comments)) + 1.0) / (hourDiff + 2.0));
 		return networkPlus * score;
 	}
 

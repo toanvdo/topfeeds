@@ -50,7 +50,7 @@ public class TwitterDataAccess implements SocialDataAccess {
 			for (Status status : statuses) {
 				Post post = new Post();
 				post.setPostId(status.getId() + "");
-				post.setOwnerId(account.getUserId());
+				post.setOwnerId(account.getId());
 
 				post.setMessage(status.getText());
 
@@ -78,7 +78,7 @@ public class TwitterDataAccess implements SocialDataAccess {
 					try {
 						senderId = accountDAO.registerFriend(status.getUser()
 								.getId() + "", SocialNetwork.TWITTER, status
-								.getUser().getName());
+								.getUser().getScreenName());
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
@@ -100,7 +100,7 @@ public class TwitterDataAccess implements SocialDataAccess {
 	public List<SocialDistance> getSocialDistance(Account account) {
 		AccessToken at = new AccessToken(account.getAccessToken(),
 				account.getTokenSecret());
-		
+
 		Twitter twitter = new TwitterFactory().getInstance();
 		twitter.setOAuthConsumer(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET);
 		twitter.setOAuthAccessToken(at);
@@ -176,11 +176,11 @@ public class TwitterDataAccess implements SocialDataAccess {
 			}
 
 			Set<Long> friendsIds = getFriendsIDs(twitter, user.getId());
-			
+
 			for (Long friendId : friendsIds) {
 				Set<Long> friendsList = getFriendsIDs(twitter, friendId);
-				
-				//TODO: consider removing as uses too many api calls.
+
+				// TODO: consider removing as uses too many api calls.
 				User friend = twitter.showUser(friendId);
 				int mutualCount = 0;
 				SocialDistance sd = new SocialDistance();
@@ -190,9 +190,8 @@ public class TwitterDataAccess implements SocialDataAccess {
 					int friendAccountId = accountDAO.getSocialNetworkUser(
 							friendId + "", SocialNetwork.TWITTER);
 					if (friendAccountId == -1) {
-						friendAccountId = accountDAO.registerFriend(
-								friendId + "", SocialNetwork.TWITTER,
-								friend.getName());
+						friendAccountId = accountDAO.registerFriend(friendId
+								+ "", SocialNetwork.TWITTER, friend.getName());
 					}
 
 					sd.setFriendId(friendAccountId);
@@ -204,8 +203,7 @@ public class TwitterDataAccess implements SocialDataAccess {
 
 					}
 					sd.setMutualFriends(mutualCount);
-					Integer interactionCount = interactionsMap
-							.get(friendId);
+					Integer interactionCount = interactionsMap.get(friendId);
 					if (interactionCount != null) {
 						sd.setInteractions(interactionCount);
 					} else {
@@ -230,14 +228,14 @@ public class TwitterDataAccess implements SocialDataAccess {
 			throws TwitterException {
 		long cursor = -1;
 		Set<Long> friendsIds = new HashSet<Long>();
-//		while (cursor != 0) {
-//			IDs followersId = twitter.getFollowersIDs(userId, cursor);
-//
-//			Long[] longObjects = ArrayUtils.toObject(followersId.getIDs());
-//			friendsIds.addAll(Arrays.asList(longObjects));
-//			cursor = followersId.getNextCursor();
-//		}
-		cursor=-1;
+		// while (cursor != 0) {
+		// IDs followersId = twitter.getFollowersIDs(userId, cursor);
+		//
+		// Long[] longObjects = ArrayUtils.toObject(followersId.getIDs());
+		// friendsIds.addAll(Arrays.asList(longObjects));
+		// cursor = followersId.getNextCursor();
+		// }
+		cursor = -1;
 		while (cursor != 0) {
 			IDs friendsId = twitter.getFriendsIDs(userId, cursor);
 
@@ -246,5 +244,34 @@ public class TwitterDataAccess implements SocialDataAccess {
 			cursor = friendsId.getNextCursor();
 		}
 		return friendsIds;
+	}
+
+	public Account getUserAccount(Integer userId, String accessToken, String tokenSecret) {
+		AccessToken at = new AccessToken(accessToken,
+				tokenSecret);
+
+		Twitter twitter = new TwitterFactory().getInstance();
+		twitter.setOAuthConsumer(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET);
+		twitter.setOAuthAccessToken(at);
+		
+		// gets Twitter instance with default credentials
+		Account acct = null;
+
+		try {
+			User user = twitter.verifyCredentials();
+			if (user != null) {
+				acct = new Account();
+				acct.setUsername(user.getId()+"");
+				acct.setAccessToken(accessToken);
+				acct.setTokenSecret(tokenSecret);
+				acct.setName(user.getScreenName());
+			}
+		} catch (TwitterException e) {
+			//TODO
+			e.printStackTrace();
+		}
+		
+		return acct;
+		
 	}
 }

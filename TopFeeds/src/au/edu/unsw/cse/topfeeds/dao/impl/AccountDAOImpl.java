@@ -18,16 +18,37 @@ public class AccountDAOImpl implements AccountDAO {
 
 	private Connection conn = DatabaseConnection.getConnection();
 
-	public void registerAccount(Account account) throws Exception {
+	private boolean checkExist(Account account) {
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement("INSERT ACCOUNT(userId, username,accessToken,tokenSecret, type) VALUES (?,?,?,?,?)");
+					.prepareStatement("select id from account where userId = ? AND username =?");
+			ps.setInt(1, account.getUserId());
+			ps.setString(2, account.getUsername());
+			ResultSet rs = ps.executeQuery();
+			return rs.first();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return false;
+
+	}
+
+	public void registerAccount(Account account) throws Exception {
+		try {
+			if (checkExist(account)) {
+				throw new Exception("Account already linked");
+			}
+
+			PreparedStatement ps = conn
+					.prepareStatement("INSERT ACCOUNT(userId, username,accessToken,tokenSecret, type, name) VALUES (?,?,?,?,?,?)");
 			ps.setInt(1, account.getUserId());
 			ps.setString(2, account.getUsername());
 			ps.setString(3, account.getAccessToken());
 			ps.setString(4, account.getTokenSecret());
 			ps.setString(5, account.getType().toString());
-
+			ps.setString(6, account.getName());
 			int status = ps.executeUpdate();
 
 			if (status == 0) {
@@ -70,12 +91,10 @@ public class AccountDAOImpl implements AccountDAO {
 
 	}
 
-	public void registerTopFeedsUser(TopFeedsUser topFeedsUser)
-			throws Exception {
-
+	public int registerTopFeedsUser(TopFeedsUser topFeedsUser) throws Exception {
+		int socialUserId = -1;
 		try {
-			int socialUserId = registerSocialNetworkUser(topFeedsUser
-					.getEmail());
+			socialUserId = registerSocialNetworkUser(topFeedsUser.getName());
 
 			topFeedsUser.setId(socialUserId);
 		} catch (Exception e) {
@@ -83,28 +102,23 @@ public class AccountDAOImpl implements AccountDAO {
 					"Failed to insert TopFeedsUser Stage1, try again");
 		}
 
-		try {
-			PreparedStatement ps = conn
-					.prepareStatement("INSERT TOPFEEDS_USER(id, username,password,emailAddress,mac) VALUES (?,?,?,?,?)");
+		PreparedStatement ps = conn
+				.prepareStatement("INSERT TOPFEEDS_USER(id, username,password,emailAddress,mac) VALUES (?,?,?,?,?)");
 
-			// insert after
-			ps.setInt(1, topFeedsUser.getId());
-			ps.setString(2, topFeedsUser.getUsername());
-			ps.setString(3, topFeedsUser.getPassword());
-			ps.setString(4, topFeedsUser.getEmail());
-			ps.setString(5, topFeedsUser.getMac());
+		// insert after
+		ps.setInt(1, topFeedsUser.getId());
+		ps.setString(2, topFeedsUser.getUsername());
+		ps.setString(3, topFeedsUser.getPassword());
+		ps.setString(4, topFeedsUser.getEmail());
+		ps.setString(5, topFeedsUser.getMac());
 
-			int status = ps.executeUpdate();
+		int status = ps.executeUpdate();
 
-			if (status == 0) {
-				throw new Exception(
-						"Failed to insert TopFeedsUser Stage2, try again");
-			}
-
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (status == 0) {
+			throw new Exception(
+					"Failed to insert TopFeedsUser Stage2, try again");
 		}
+		return socialUserId;
 
 	}
 
@@ -245,32 +259,58 @@ public class AccountDAOImpl implements AccountDAO {
 
 	}
 
-	public UserPreference getUserPreference(Account acct) {
+	public UserPreference getUserPreference(int userId) {
 		UserPreference userPref = null;
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement("SELECT id, userId, socialDistancePref, popularityPref, networkPref, recencyPref " +
-							"FROM USER_PREFERENCE " +
-							"WHERE userId=?");
-			ps.setInt(1, acct.getUserId());
-			
-			
+					.prepareStatement("SELECT userId, socialDistancePref, popularityPref, networkPref, recencyPref "
+							+ "FROM USER_PREFERENCE WHERE userId=?");
+			ps.setInt(1, userId);
+
 			ResultSet rs = ps.executeQuery();
 			if (rs.first()) {
 				userPref = new UserPreference();
-				userPref.setId(rs.getInt(1));
-				userPref.setUserId(rs.getInt(2));
-				userPref.setSocialDistancePref(rs.getFloat(3));
-				userPref.setPopularityPref(rs.getFloat(4));
-				userPref.setNetworkPref(SocialNetwork.valueOf(rs.getString(5)));
-				userPref.setRecencyPref(rs.getFloat(6));
+				userPref.setUserId(rs.getInt(1));
+				userPref.setSocialDistancePref(rs.getFloat(2));
+				userPref.setPopularityPref(rs.getFloat(3));
+				userPref.setNetworkPref(SocialNetwork.valueOf(rs.getString(4)));
+				userPref.setRecencyPref(rs.getFloat(5));
 			}
-			
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return userPref;
+	}
+
+	@Override
+	public void updateUserPreference(UserPreference newUserPref) {
+		PreparedStatement ps;
+		try {
+			ps = conn
+					.prepareStatement("INSERT USER_PREFERENCE (userId, socialDistancePref, popularityPref, networkPref, recencyPref)"
+							+ " VALUES(?,?,?,?,?) "
+							+ "ON DUPLICATE KEY UPDATE socialDistancePref=?, popularityPref=?, networkPref=?, recencyPref=?");
+			ps.setInt(1, newUserPref.getUserId());
+			ps.setFloat(2, newUserPref.getSocialDistancePref());
+			ps.setFloat(3, newUserPref.getPopularityPref());
+			ps.setString(4, newUserPref.getNetworkPref() == null ? ""
+					: newUserPref.getNetworkPref().toString());
+			ps.setFloat(5, newUserPref.getRecencyPref());
+
+			ps.setFloat(6, newUserPref.getSocialDistancePref());
+			ps.setFloat(7, newUserPref.getPopularityPref());
+			ps.setString(8, newUserPref.getNetworkPref() == null ? ""
+					: newUserPref.getNetworkPref().toString());
+			ps.setFloat(9, newUserPref.getRecencyPref());
+
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 }

@@ -10,5 +10,5 @@ public interface SocialDataAccess {
 
 	List<Post> getUserFeed(Account account);
 	List<SocialDistance> getSocialDistance(Account account);
-
+	Account getUserAccount(Integer userId, String accessToken, String tokenSecret);
 }

@@ -27,10 +27,8 @@ public class UpdateSocialScores implements Job {
 		try {
 			for (Account acct : acctDAO.getAllActiveAccounts()) {
 				try {
-					List<SocialDistance> sds = getSocialScoreForAccount(acct,
-							feedDAO);
+					updateSocialScoreForAccount(acct);
 
-					feedDAO.updateSocialScore(sds);
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -43,8 +41,7 @@ public class UpdateSocialScores implements Job {
 
 	}
 
-	private List<SocialDistance> getSocialScoreForAccount(Account acct,
-			FeedDAO feedDAO) {
+	public void updateSocialScoreForAccount(Account acct) {
 		List<SocialDistance> sds = null;
 
 		switch (acct.getType()) {
@@ -55,8 +52,8 @@ public class UpdateSocialScores implements Job {
 			sds = twitterDAO.getSocialDistance(acct);
 			break;
 		}
+		feedDAO.updateSocialScore(sds);
 
-		return sds;
 	}
 
 }
