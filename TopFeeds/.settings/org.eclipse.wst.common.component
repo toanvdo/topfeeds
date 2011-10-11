@@ -3,6 +3,7 @@
     <wb-module deploy-name="TopFeeds">
         <wb-resource deploy-path="/" source-path="/WebContent"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/properties"/>
         <property name="context-root" value="TopFeeds"/>
         <property name="java-output-path" value="/TopFeeds/build/classes"/>
     </wb-module>

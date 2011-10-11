@@ -23,7 +23,7 @@ public class UpdateSocialScoresSchedule {
 		Trigger st = TriggerBuilder.newTrigger()
 				.withIdentity("mytrigger2", Scheduler.DEFAULT_GROUP)
 				.startAt(new Date())
-				.withSchedule(SimpleScheduleBuilder.repeatHourlyForever(1))
+				.withSchedule(SimpleScheduleBuilder.repeatHourlyForever(5))
 				.build();
 		sched.scheduleJob(jd, st);
 		sched.start();

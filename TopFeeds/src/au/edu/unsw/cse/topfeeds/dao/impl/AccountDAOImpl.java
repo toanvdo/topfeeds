@@ -54,6 +54,13 @@ public class AccountDAOImpl implements AccountDAO {
 			if (status == 0) {
 				throw new Exception("Failed to insert Account, try again");
 			}
+
+			ps = conn.prepareStatement("SELECT LAST_INSERT_ID()");
+			ResultSet rs = ps.executeQuery();
+			if (rs.first()) {
+				account.setId(rs.getInt(1));
+			}
+
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -263,7 +270,7 @@ public class AccountDAOImpl implements AccountDAO {
 		UserPreference userPref = null;
 		try {
 			PreparedStatement ps = conn
-					.prepareStatement("SELECT userId, socialDistancePref, popularityPref, networkPref, recencyPref "
+					.prepareStatement("SELECT userId, socialDistancePref,affinityPref, popularityPref, networkPref, recencyPref, mutualFriendsPref "
 							+ "FROM USER_PREFERENCE WHERE userId=?");
 			ps.setInt(1, userId);
 
@@ -272,9 +279,12 @@ public class AccountDAOImpl implements AccountDAO {
 				userPref = new UserPreference();
 				userPref.setUserId(rs.getInt(1));
 				userPref.setSocialDistancePref(rs.getFloat(2));
-				userPref.setPopularityPref(rs.getFloat(3));
-				userPref.setNetworkPref(SocialNetwork.valueOf(rs.getString(4)));
-				userPref.setRecencyPref(rs.getFloat(5));
+				userPref.setAffinityPref(rs.getFloat(3));
+				userPref.setPopularityPref(rs.getFloat(4));
+				userPref.setNetworkPref((rs.getString(5)!=null && !rs.getString(5).isEmpty())?SocialNetwork.valueOf(rs.getString(5)):null);
+				userPref.setRecencyPref(rs.getFloat(6));
+				userPref.setMutualFriendsPref(rs.getFloat(7));
+
 			}
 
 		} catch (SQLException e) {
@@ -289,21 +299,30 @@ public class AccountDAOImpl implements AccountDAO {
 		PreparedStatement ps;
 		try {
 			ps = conn
-					.prepareStatement("INSERT USER_PREFERENCE (userId, socialDistancePref, popularityPref, networkPref, recencyPref)"
-							+ " VALUES(?,?,?,?,?) "
-							+ "ON DUPLICATE KEY UPDATE socialDistancePref=?, popularityPref=?, networkPref=?, recencyPref=?");
+					.prepareStatement("INSERT USER_PREFERENCE (userId, socialDistancePref, affinityPref, popularityPref, networkPref, recencyPref,mutualFriendsPref)"
+							+ " VALUES(?,?,?,?,?,?,?) "
+							+ "ON DUPLICATE KEY UPDATE socialDistancePref=?, affinityPref=?, popularityPref=?, networkPref=?, recencyPref=?, mutualFriendsPref=?");
 			ps.setInt(1, newUserPref.getUserId());
 			ps.setFloat(2, newUserPref.getSocialDistancePref());
-			ps.setFloat(3, newUserPref.getPopularityPref());
-			ps.setString(4, newUserPref.getNetworkPref() == null ? ""
-					: newUserPref.getNetworkPref().toString());
-			ps.setFloat(5, newUserPref.getRecencyPref());
+			ps.setFloat(3, newUserPref.getAffinityPref());
+			ps.setFloat(4, newUserPref.getPopularityPref());
 
-			ps.setFloat(6, newUserPref.getSocialDistancePref());
-			ps.setFloat(7, newUserPref.getPopularityPref());
-			ps.setString(8, newUserPref.getNetworkPref() == null ? ""
+			ps.setString(5, newUserPref.getNetworkPref() == null ? ""
 					: newUserPref.getNetworkPref().toString());
-			ps.setFloat(9, newUserPref.getRecencyPref());
+			ps.setFloat(6, newUserPref.getRecencyPref());
+			ps.setFloat(7, newUserPref.getMutualFriendsPref());
+
+
+			ps.setFloat(8, newUserPref.getSocialDistancePref());
+			ps.setFloat(9, newUserPref.getAffinityPref());
+
+			
+			ps.setFloat(10, newUserPref.getPopularityPref());
+			ps.setString(11, newUserPref.getNetworkPref() == null ? ""
+					: newUserPref.getNetworkPref().toString());
+			ps.setFloat(12, newUserPref.getRecencyPref());
+			ps.setFloat(13, newUserPref.getMutualFriendsPref());
+
 
 			ps.executeUpdate();
 		} catch (SQLException e) {

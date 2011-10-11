@@ -102,7 +102,7 @@
   </servlet>
   <servlet-mapping>
     <servlet-name>GetUserPreference</servlet-name>
-    <url-pattern>/GetUserPref.do</url-pattern>
+    <url-pattern>/GetUserPref</url-pattern>
   </servlet-mapping>
   <servlet>
     <description></description>

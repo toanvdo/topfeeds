@@ -51,7 +51,7 @@ public class TwitterDataAccess implements SocialDataAccess {
 				Post post = new Post();
 				post.setPostId(status.getId() + "");
 				post.setOwnerId(account.getId());
-
+				post.setUrl("http://twitter.com/#!/" + status.getUser().getScreenName() +"/status/"+status.getId());
 				post.setMessage(status.getText());
 
 				if ((int) status.getRetweetCount() >= 0) {
@@ -261,10 +261,12 @@ public class TwitterDataAccess implements SocialDataAccess {
 			User user = twitter.verifyCredentials();
 			if (user != null) {
 				acct = new Account();
+				acct.setUserId(userId);
 				acct.setUsername(user.getId()+"");
 				acct.setAccessToken(accessToken);
 				acct.setTokenSecret(tokenSecret);
 				acct.setName(user.getScreenName());
+				acct.setType(SocialNetwork.TWITTER);
 			}
 		} catch (TwitterException e) {
 			//TODO

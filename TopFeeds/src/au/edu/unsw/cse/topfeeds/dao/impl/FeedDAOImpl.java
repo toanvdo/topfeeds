@@ -90,7 +90,9 @@ public class FeedDAOImpl implements FeedDAO {
 			ps = conn
 					.prepareStatement("SELECT post.id, postId, ownerId, senderId, message, url, comments, likes, post.type, createdTime, score, lastUpdated, realName "
 							+ "FROM post INNER JOIN account ON post.ownerId = account.id INNER JOIN SOCIAL_NETWORK_USER ON post.senderId = SOCIAL_NETWORK_USER.id "
-							+ "WHERE account.userId =1 ORDER BY createdTime DESC LIMIT 0 ,25");
+							+ "WHERE account.userId =? ORDER BY createdTime DESC LIMIT ? ,25");
+			ps.setInt(1, userId);
+			ps.setInt(2, page*25);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				Post post = new Post();
