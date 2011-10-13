@@ -8,7 +8,6 @@ import org.quartz.JobExecutionException;
 
 import au.edu.unsw.cse.topfeeds.dao.AccountDAO;
 import au.edu.unsw.cse.topfeeds.dao.FeedDAO;
-import au.edu.unsw.cse.topfeeds.dao.SocialNetwork;
 import au.edu.unsw.cse.topfeeds.dao.external.FacebookDataAccess;
 import au.edu.unsw.cse.topfeeds.dao.external.SocialDataAccess;
 import au.edu.unsw.cse.topfeeds.dao.external.TwitterDataAccess;
@@ -16,13 +15,9 @@ import au.edu.unsw.cse.topfeeds.dao.impl.AccountDAOImpl;
 import au.edu.unsw.cse.topfeeds.dao.impl.FeedDAOImpl;
 import au.edu.unsw.cse.topfeeds.model.Account;
 import au.edu.unsw.cse.topfeeds.model.Post;
-import au.edu.unsw.cse.topfeeds.model.SocialDistance;
-import au.edu.unsw.cse.topfeeds.model.UserPreference;
 
 public class RetrieveUpdatePosts implements Job {
 
-	private static final int MAX_CAP = 50;
-	private static final float NETWORK_BONUS = 1.5f;
 	private SocialDataAccess facebookDAO = new FacebookDataAccess();
 	private SocialDataAccess twitterDAO = new TwitterDataAccess();
 	private AccountDAO acctDAO = new AccountDAOImpl();

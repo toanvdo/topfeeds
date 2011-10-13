@@ -23,7 +23,7 @@ public class RetrieveUpdatePostSchedule {
 		Trigger st = TriggerBuilder.newTrigger()
 				.withIdentity("mytrigger", Scheduler.DEFAULT_GROUP)
 				.startAt(new Date())
-				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(30))
+				.withSchedule(SimpleScheduleBuilder.repeatMinutelyForever(15))
 				.build();
 		sched.scheduleJob(jd, st);
 		sched.start();
